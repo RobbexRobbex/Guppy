@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Guppy AI - Starfleet Interface</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Arial', sans-serif;
+      background: black;
+      color: #f1f1f1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+    }
+
+    #interface {
+      background: #1a1a1a;
+      border: 3px solid #cc0000;
+      border-radius: 15px;
+      padding: 20px;
+      width: 90%;
+      max-width: 700px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      box-shadow: 0 0 20px #cc0000;
+    }
+
+    #avatar {
+      width: 180px;
+      margin-bottom: 15px;
+      transition: opacity 0.3s ease;
+    }
+
+    #responseBox {
+      width: 100%;
+      min-height: 100px;
+      background: #000;
+      color: #00ff00;
+      border: 2px solid #555;
+      border-radius: 8px;
+      padding: 10px;
+      font-family: 'Courier New', monospace;
+      white-space: pre-wrap;
+      margin-bottom: 15px;
+    }
+
+    input {
+      width: 80%;
+      padding: 10px;
+      font-size: 16px;
+      border-radius: 8px;
+      border: 2px solid #333;
+      margin-bottom: 10px;
+    }
+
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      background-color: #cc0000;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #ff0000;
+    }
+  </style>
+</head>
+<body>
+  <div id="interface">
+    <img id="avatar" src="guppy_static.png" alt="Guppy" />
+    <div id="responseBox">Loading Guppy...</div>
+    <input id="prompt" placeholder="Enter your command, Captain..." />
+    <button onclick="askGuppy()">Engage</button>
+  </div>
+
+  <script>
+    window.onload = () => {
+      fetch('http://localhost:5000/init')
+        .then(res => res.json())
+        .then(data => typeResponse(data.response));
+    };
+
+    async function askGuppy() {
+      const prompt = document.getElementById('prompt').value;
+      const avatar = document.getElementById('avatar');
+      const box = document.getElementById('responseBox');
+
+      avatar.src = "guppy_talking.gif";
+      box.textContent = '';
+
+      const response = await fetch('http://localhost:5000/ask', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt })
+      });
+
+      const data = await response.json();
+      typeResponse(data.response);
+    }
+
+    function typeResponse(text) {
+      const box = document.getElementById('responseBox');
+      const avatar = document.getElementById('avatar');
+      box.textContent = '';
+      avatar.src = "guppy_talking.gif";
+      let i = 0;
+
+      function typeWriter() {
+        if (i < text.length) {
+          box.textContent += text.charAt(i);
+          i++;
+          setTimeout(typeWriter, 15);
+        } else {
+          avatar.src = "guppy_static.png";
+        }
+      }
+
+      typeWriter();
+    }
+  </script>
+</body>
+</html>
